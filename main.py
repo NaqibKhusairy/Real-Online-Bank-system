@@ -98,6 +98,49 @@ def createdatabase():
     except mysql.connector.Error as err:
         print("Error: {}".format(err))
 
+def checkuser(username):
+    print("\n-------------------------------------------------------------")
+    print("                     Check User Account")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter your Username: ")
+    print("\n-------------------------------------------------------------")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT * FROM user WHERE username=%s",(username2,))
+        sameinpt = mydbse.fetchone()
+
+        if sameinpt:
+            mydbse.execute("SELECT accountnum FROM user WHERE username=%s",
+                           (username2,))
+            accountnum = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT category FROM user WHERE username=%s",
+                           (username2,))
+            category = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT active FROM user WHERE username=%s",
+                           (username2,))
+            activate = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT money FROM user WHERE username=%s",
+                           (username2,))
+            money = mydbse.fetchone()[0]
+
+            print("Account Number : "+accountnum)
+            print("Username : "+username2)
+            print("Category : "+category)
+            print("Account Balance : RM {:.2f}".format(money))
+            print("Acount is : "+activate)
+            staff(username)
+        else:
+            print("User Not Found")
+
+    except :
+        print("Failed to Find User ")
+        staff(username)
+
+
 def registerstaff(username):
     accountnum = ''.join(str(random.randint(0, 9)) for _ in range(12))
     try:
@@ -257,7 +300,7 @@ def staff(username):
                     elif userchoice == 2:
                         registerstaff(username)
                 elif userchoice == 3:
-                    print("belum siap")
+                    checkuser(username)
                 elif userchoice == 4:
                     print("belum siap")
                 elif userchoice == 5:
@@ -295,7 +338,7 @@ def staff(username):
                         print("-------------------------------------------------------------\n")
                         registeruser(username)
                     elif userchoice == 2:
-                        print("belum siap")
+                        checkuser(username)
                 elif userchoice == 3:
                     print("belum siap")
                 elif userchoice == 4:
