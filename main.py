@@ -5,7 +5,7 @@ import random
 table = [
     [" 1", "Login"],
     [" 2", "ATM Function"],
-    [" 3", "Forgot Password"],
+    [" 3", "Forgot Password"]
     [" 4", "Staff Bank"]
 ]
 
@@ -33,6 +33,20 @@ table4 = [
     [" 3", "Change Password"],
     [" 4", "Check Money In All Account"],
     [" 5", "Log Out"]
+]
+
+table5 = [
+    [" 1", "Check Balance"], # belum
+    [" 2", "Transfer To Other Bank Account"], # belum
+    [" 3", "Transaction History"], # belum
+    [" 4", "Change Password"], # belum
+    [" 5", "Log Out"]
+]
+
+table6 = [
+    [" 1", "Withdraw"], # belum
+    [" 2", "Bank In To Account"], # belum
+    [" 3", "Back"]
 ]
 
 def database():
@@ -624,8 +638,77 @@ def admin(count):
         print("     You just need to fill either 1 or 2 or 3 !!!")
         print("\n-------------------------------------------------------------\n")
 
+def userforgotpassword():
+    print("\n-------------------------------------------------------------")
+    print("                    User Forgot Password")
+    print("-------------------------------------------------------------\n")
+    username = input("Please enter your Username: ")
+
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT * FROM user WHERE username=%s",
+                       (username,))
+        user_data = mydbse.fetchone()
+
+        if user_data:
+            passwrd = input("Please enter your New Password: ")
+            cpasswrd = input("Please confirm your New Password: ")
+
+            if passwrd == cpasswrd : 
+                passwrd = bcrypt.hashpw(passwrd.encode('utf-8'), bcrypt.gensalt())
+                mydbse.execute("UPDATE user SET password=%s WHERE username=%s",
+                    (passwrd, username))
+                projectdatabase.commit()
+                print("Welcome back, " + username + ".")
+                user(username)
+            else :
+                print("Please Make Sure Your Password and confirm passwrd is same. please register again")
+                userforgotpassword()
+        else:
+            print("Your account is not in the database, please register first")
+            askuser=input("Do you want To bank ? [ Y to back or any key to continue ] : ")
+            askuser=askuser.upper()
+            if askuser == "Y":
+                print()
+                print("-------------------------------------------------------------")
+                choose()
+            else :
+                userforgotpassword()
+
+    except mysql.connector.Error as err:
+        print("Failed to log in: {}".format(err))
+
 def user(username):
-    print("User functionality for user", username)
+    print("-------------------------------------------------------------")
+    for row in table5:
+        for col in row:
+            print(col, end="\t")
+        print()
+    print("-------------------------------------------------------------")
+    
+    try:
+        userchoice = int(input("Please Choose [1 or 2 or 3 or 4 or 5]: "))
+        print()
+        if userchoice == 1 or userchoice == 2:
+            if userchoice == 1:
+                print("belum siap")
+            elif userchoice == 2:
+                print("belum siap")
+        elif userchoice == 3:
+            print("belum siap")
+        elif userchoice == 4:
+            print("belum siap")
+        elif userchoice == 5:
+            choose()
+        else:
+            print("\n-------------------------------------------------------------\n")
+            print("     You just need to fill either 1 or 2 or 3 or 4 or 5 !!!")
+            print("\n-------------------------------------------------------------\n")
+    except ValueError:
+        print("\n-------------------------------------------------------------\n")
+        print("     You just need to fill either 1 or 2 or 3 or 4 or 5 !!!")
+        print("\n-------------------------------------------------------------\n")
 
 def login(count):
     print("\n-------------------------------------------------------------")
@@ -673,6 +756,33 @@ def login(count):
     except mysql.connector.Error as err:
         print("Failed to log in: {}".format(err))
 
+def atm():
+    print("-------------------------------------------------------------")
+    for row in table6:
+        for col in row:
+            print(col, end="\t")
+        print()
+    print("-------------------------------------------------------------")
+    
+    try:
+        userchoice = int(input("Please Choose [1 or 2 or 3]: "))
+        print()
+        if userchoice == 1 or userchoice == 2:
+            if userchoice == 1:
+                print("belum siap")
+            elif userchoice == 2:
+                print("belum siap")
+        elif userchoice == 3:
+            choose()
+        else:
+            print("\n-------------------------------------------------------------\n")
+            print("     You just need to fill either 1 or 2 or 3 !!!")
+            print("\n-------------------------------------------------------------\n")
+    except ValueError:
+        print("\n-------------------------------------------------------------\n")
+        print("     You just need to fill either 1 or 2 or 3 !!!")
+        print("\n-------------------------------------------------------------\n")
+
 def choose():
     count = 3
     for row in table:
@@ -688,9 +798,9 @@ def choose():
             if userchoice == 1:
                 login(count)
             elif userchoice == 2:
-                print("ATM Function not implemented yet")
+                atm()
         elif userchoice == 3:
-            print("Forgot Password not implemented yet")
+           userforgotpassword()
         elif userchoice == 4:
             admin(count)
         else:
