@@ -861,7 +861,7 @@ def withdraw(count):
                 atm()
         else:
             print("User Not Found. Please enter the correct username")
-            withdraw(count)
+            atm()
 
     except mysql.connector.Error as err:
         print("Failed to update data: {}".format(err))
@@ -880,7 +880,7 @@ def bankin():
         sameinpt = mydbse.fetchone()
 
         if sameinpt:
-            mydbse.execute("SELECT active FROM user WHERE username=%s",
+            mydbse.execute("SELECT active FROM user WHERE accountnum=%s",
                            (username2,))
             user_data2 = mydbse.fetchone()
 
@@ -920,7 +920,7 @@ def bankin():
 
         else:
             print("Account Number Not Found.. Please insert the correct account number...")
-            bankin()
+            atm()
 
     except mysql.connector.Error as err:
         print("Failed to update data: {}".format(err))
