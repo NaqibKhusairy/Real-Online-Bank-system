@@ -135,7 +135,7 @@ def unactive(username):
 
 def activeacc(username):
     print("\n-------------------------------------------------------------")
-    print("                     Activate User Account")
+    print("                     Activated User Account")
     print("-------------------------------------------------------------\n")
     username2 = input("Please enter your Username: ")
     print("\n-------------------------------------------------------------")
