@@ -36,10 +36,10 @@ table4 = [
 ]
 
 table5 = [
-    [" 1", "Check Balance"], # belum
-    [" 2", "Transfer To Other Bank Account"], # belum
-    [" 3", "Transaction History"], # belum
-    [" 4", "Change Password"], # belum
+    [" 1", "Check Balance"],
+    [" 2", "Transfer To Other Bank Account"],
+    [" 3", "Transaction History"],
+    [" 4", "Change Password"],
     [" 5", "Log Out"]
 ]
 
@@ -679,6 +679,161 @@ def userforgotpassword():
     except mysql.connector.Error as err:
         print("Failed to log in: {}".format(err))
 
+def checkbalance(username):
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT money FROM user WHERE username=%s",
+                       (username,))
+        money = mydbse.fetchone()[0]
+        print("Your account Balance: RM {:.2f}".format(money))
+        user(username)
+    except mysql.connector.Error as err:
+        print("Failed to log in: {}".format(err))
+
+def transfer(username):
+    print("\n-------------------------------------------------------------")
+    print("                       Transfer Money")
+    print("-------------------------------------------------------------\n")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT money FROM user WHERE username=%s",
+                       (username,))
+        money = mydbse.fetchone()[0]
+
+        if money == 10:
+            print("Your Account Balance is not enough to transfer")
+            print("\n-------------------------------------------------------------")
+        else:
+            username2 = input("Please enter Account Number: ")
+            mydbse.execute("SELECT * FROM user WHERE accountnum=%s",(username2,))
+            sameinpt = mydbse.fetchone()
+
+            if sameinpt:
+                mydbse.execute("SELECT active FROM user WHERE accountnum=%s",
+                               (username2,))
+                user_data2 = mydbse.fetchone()
+
+                if user_data2[0].lower() == "active" :
+                    try:
+                        mydbse = projectdatabase.cursor()
+                        mydbse.execute("SELECT * FROM user WHERE accountnum=%s",
+                            (username2,))
+                        user_data = mydbse.fetchone()
+
+                        if user_data:
+                            mydbse.execute("SELECT username FROM user WHERE accountnum=%s",
+                                (username2,))
+                            transferusername = mydbse.fetchone()[0]
+                            print("Transfer To : "+transferusername)
+
+                            usertransfer = float(input("Please Enter Your Transfer Amount: RM "))
+                            if usertransfer > money:
+                                print("There is not enough money in your account to Transfer")
+                            elif usertransfer <= 0:
+                                print("Please enter a valid transfer amount.")
+                            else:
+                                money -= usertransfer
+                                if money < 10:
+                                    print("There is not enough money in your account to withdraw. Minumum in your account must have RM 10")
+                                else:
+                                    mydbse.execute("UPDATE user SET money=%s WHERE username=%s",
+                                                   (money, username))
+                                    projectdatabase.commit()
+
+                                    mydbse = projectdatabase.cursor()
+
+                                    mydbse.execute("SELECT money FROM user WHERE username=%s",
+                                        (transferusername,))
+                                    transfermoney = mydbse.fetchone()[0]
+                                    transfermoney += usertransfer
+
+                                    mydbse.execute("UPDATE user SET money=%s WHERE username=%s",
+                                                   (transfermoney, transferusername))
+                                    projectdatabase.commit()
+
+                                    mydbse.execute("INSERT INTO history"
+                                        "(username, detail, money)"
+                                        "VALUES(%s, %s, %s)",
+                                        (username, "Transfer To "+transferusername, "-RM {:.2f}".format(usertransfer)))
+                                    projectdatabase.commit()
+
+                                    mydbse.execute("INSERT INTO history"
+                                        "(username, detail, money)"
+                                        "VALUES(%s, %s, %s)",
+                                        (transferusername, "Transfer From "+username, "+RM {:.2f}".format(usertransfer)))
+                                    projectdatabase.commit()
+
+                                    print("You have Transfer to "+transferusername+" RM {:.2f}".format(usertransfer))
+                                    print("Your account Balance: RM {:.2f}".format(money))
+                        else:
+                            print("Username not found.")
+                    except mysql.connector.Error as err:
+                        print("Failed to update data: {}".format(err))
+                else:
+                    print("Sorry This Account Is unactive.... Please Contact your bank...")
+                    user(username)
+
+            else:
+                print("Account Number Not Found.. Please insert the correct account number...")
+                user(username)
+
+    except mysql.connector.Error as err:
+        print("Failed to update data: {}".format(err))
+        user(username)
+
+def history(username):
+    print("\n-------------------------------------------------------------")
+    print("              "+username+" Transaction History:")
+    print("-------------------------------------------------------------")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+
+        mydbse.execute("SELECT * FROM history WHERE username=%s", (username,))
+        transaction_data = mydbse.fetchall()
+        
+        if transaction_data:
+            for transaction in transaction_data:
+                detail = transaction[1]
+                money = transaction[2]
+                
+                print(detail +" "+ money)
+            user(username)
+        else:
+            print("No Transaction History")
+            user(username)
+            
+    except mysql.connector.Error as err:
+        print("Failed to Find User: {}".format(err))
+        user(username)
+                
+def changepassworduser(username):
+    print("\n-------------------------------------------------------------")
+    print("                "+username+" Change Password")
+    print("-------------------------------------------------------------\n")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        passwrd = input("Please enter your New Password: ")
+        cpasswrd = input("Please confirm your New Password: ")
+
+        if passwrd == cpasswrd : 
+            passwrd = bcrypt.hashpw(passwrd.encode('utf-8'), bcrypt.gensalt())
+            mydbse.execute("UPDATE user SET password=%s WHERE username=%s",
+                (passwrd, username))
+            projectdatabase.commit()
+            print("\n"+username + " Your password have been changed .")
+            user(username)
+        else :
+            print("Please Make Sure Your Password and confirm passwrd is same. please register again")
+            changepassworduser(username)
+
+    except mysql.connector.Error as err:
+        print("Failed to log in: {}".format(err))
+        user(username)
+
 def user(username):
     print("\n-------------------------------------------------------------")
     print("                      Username: "+username)
@@ -730,13 +885,13 @@ def user(username):
         print()
         if userchoice == 1 or userchoice == 2:
             if userchoice == 1:
-                print("belum siap")
+                checkbalance(username)
             elif userchoice == 2:
-                print("belum siap")
+                transfer(username)
         elif userchoice == 3:
-            print("belum siap")
+            history(username)
         elif userchoice == 4:
-            print("belum siap")
+            changepassworduser(username)
         elif userchoice == 5:
             print("-------------------------------------------------------------")
             choose()
@@ -782,6 +937,7 @@ def login(count):
                         login(count)
             else:
                 print("Your Account Is unactive ... Please Contact Your Bank..")
+                print("\n-------------------------------------------------------------")
         else:
             print("Your account is not in the database, please register at the bank first")
             askuser = input("Do you want To Login Y for yes or any key to quit ? [ Y or any key ] : ")
@@ -857,7 +1013,7 @@ def withdraw(count):
                         print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
                         withdraw(count)
             else:
-                print("Sorry Your Account Is unactive.... Please connect your bank...")
+                print("Sorry Your Account Is unactive.... Please Contact your bank...")
                 atm()
         else:
             print("User Not Found. Please enter the correct username")
