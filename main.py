@@ -31,9 +31,8 @@ table4 = [
     [" 1", "Register New User"],
     [" 2", "Check User Account"],
     [" 3", "Change Password"],
-    [" 4", "Delete Account"],
-    [" 5", "Check Money In All Account"],
-    [" 6", "Log Out"]
+    [" 4", "Check Money In All Account"],
+    [" 5", "Log Out"]
 ]
 
 def database():
@@ -97,6 +96,52 @@ def createdatabase():
             print("Failed to Insert data: {}".format(err))
     except mysql.connector.Error as err:
         print("Error: {}".format(err))
+
+def deleteaccount(username):
+    print("\n-------------------------------------------------------------")
+    print("                     Delete User Account")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter Username: ")
+    print("\n-------------------------------------------------------------")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        
+        mydbse.execute("SELECT * FROM user WHERE username=%s", (username2,))
+        user_record = mydbse.fetchone()
+
+        if user_record:
+            print("-------------------------------------------------------------")
+            print("Deleting", username2, "account...")
+            print("-------------------------------------------------------------")
+
+            askuser = input(f"Do you want to Delete the {username2} account? [Y or N]: ").upper()
+
+            if askuser == "Y":
+                mydbse.execute("SELECT * FROM stafbank WHERE username=%s", (username2,))
+                staff_record = mydbse.fetchone()
+
+                if staff_record:
+                    mydbse.execute("DELETE FROM stafbank WHERE username=%s", (username2,))
+
+                mydbse.executemydbse.execute("DELETE FROM user WHERE username=%s", (username2,))
+                projectdatabase.commit()
+                
+                print("Deleted " + username2 + " account successfully")
+                staff(username)
+
+            elif askuser == "N":
+                print("Deletion Canceled")
+                staff(username)
+            else:
+                print("You need to enter either Y or N !!!")
+                deleteaccount(username)
+        else:
+            print("User Not Found")
+
+    except Exception as e:
+        print("Failed to Deleted User:", str(e))
+        staff(username)
                 
 def changepasswordstaff(username):
     print("\n-------------------------------------------------------------")
@@ -402,7 +447,7 @@ def staff(username):
                 elif userchoice == 6:
                     changepasswordstaff(username)
                 elif userchoice == 7:
-                    print("belum siap")
+                    deleteaccount(username)
                 elif userchoice == 8:
                     print("belum siap")
                 elif userchoice == 9:
@@ -438,8 +483,6 @@ def staff(username):
                 elif userchoice == 4:
                     print("belum siap")
                 elif userchoice == 5:
-                    print("belum siap")
-                elif userchoice == 6:
                     admin(count)
                 else:
                     print("\n-------------------------------------------------------------\n")
