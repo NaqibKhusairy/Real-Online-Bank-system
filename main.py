@@ -19,8 +19,8 @@ table3 = [
     [" 1", "Register New User"],
     [" 2", "Register New Staff"],
     [" 3", "Check User Account"],
-    [" 4", "unactive User Account"],
-    [" 5", "unactive Admin Account"],
+    [" 4", "Deactivated Account"],
+    [" 5", "activated Account"],
     [" 6", "Change Password"],
     [" 7", "Delete Account"],
     [" 8", "Check Money In All Account"],
@@ -30,11 +30,10 @@ table3 = [
 table4 = [
     [" 1", "Register New User"],
     [" 2", "Check User Account"],
-    [" 3", "unactive User Account"],
-    [" 4", "Change Password"],
-    [" 5", "Delete Account"],
-    [" 6", "Check Money In All Account"],
-    [" 7", "Log Out"]
+    [" 3", "Change Password"],
+    [" 4", "Delete Account"],
+    [" 5", "Check Money In All Account"],
+    [" 6", "Log Out"]
 ]
 
 def database():
@@ -70,6 +69,7 @@ def createdatabase():
                        "(username VARCHAR(200), "
                        "password VARCHAR(200), "
                        "category VARCHAR(200),"
+                       "active VARCHAR(200), "
                        "PRIMARY KEY (username)) ")
 
         mydbse.execute("CREATE TABLE IF NOT EXISTS history "
@@ -88,15 +88,85 @@ def createdatabase():
                 passwrd = "admin"
                 passwrd = bcrypt.hashpw(passwrd.encode('utf-8'), bcrypt.gensalt())
                 mydbse.execute("INSERT INTO stafbank"
-                               "(username, password, category)"
-                               "VALUES(%s, %s , %s)",
-                               ("admin", passwrd, "admin"))
+                               "(username, password, category, active)"
+                               "VALUES(%s, %s , %s, %s)",
+                               ("admin", passwrd, "admin", "active"))
                 projectdatabase.commit()
 
         except mysql.connector.Error as err:
             print("Failed to Insert data: {}".format(err))
     except mysql.connector.Error as err:
         print("Error: {}".format(err))
+
+def unactive(username):
+    print("\n-------------------------------------------------------------")
+    print("                     unactive User Account")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter your Username: ")
+    print("\n-------------------------------------------------------------")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        
+        mydbse.execute("SELECT * FROM user WHERE username=%s", (username2,))
+        user_record = mydbse.fetchone()
+
+        if user_record:
+            mydbse.execute("SELECT * FROM stafbank WHERE username=%s", (username2,))
+            staff_record = mydbse.fetchone()
+
+            if staff_record:
+                mydbse.execute("UPDATE stafbank SET active=%s WHERE username=%s",
+                               ("inactive", username2))
+                projectdatabase.commit()
+
+            mydbse.execute("UPDATE user SET active=%s WHERE username=%s",
+                           ("inactive", username2))
+            projectdatabase.commit()
+            
+            print("Deactivated " + username2 + " account successfully")
+            staff(username)
+        else:
+            print("User Not Found")
+
+    except Exception as e:
+        print("Failed to Deactivate User:", str(e))
+        staff(username)
+
+def activeacc(username):
+    print("\n-------------------------------------------------------------")
+    print("                     Activate User Account")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter your Username: ")
+    print("\n-------------------------------------------------------------")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        
+        mydbse.execute("SELECT * FROM user WHERE username=%s", (username2,))
+        user_record = mydbse.fetchone()
+
+        if user_record:
+            mydbse.execute("SELECT * FROM stafbank WHERE username=%s", (username2,))
+            staff_record = mydbse.fetchone()
+
+            if staff_record:
+                mydbse.execute("UPDATE stafbank SET active=%s WHERE username=%s",
+                               ("active", username2))
+                projectdatabase.commit()
+
+            mydbse.execute("UPDATE user SET active=%s WHERE username=%s",
+                           ("active", username2))
+            projectdatabase.commit()
+            
+            print("Activated " + username2 + " account successfully")
+            staff(username)
+        else:
+            print("User Not Found")
+
+    except Exception as e:
+        print("Failed to Activated User:", str(e))
+        staff(username)
 
 def checkuser(username):
     print("\n-------------------------------------------------------------")
@@ -177,7 +247,7 @@ def registerstaff(username):
                     else :
                         staff(username)
                 else:
-                    category=input("Please enter the owner was staff or admin")
+                    category=input("Please enter the owner was staff or admin : ")
                     category= category.lower()
                     if category =="staff" or category == "admin":
                         passwrd = "123"
@@ -197,9 +267,9 @@ def registerstaff(username):
                         projectdatabase.commit()
 
                         mydbse.execute("INSERT INTO stafbank"
-                                       "(username, password, category)"
-                                       "VALUES(%s, %s, %s)",
-                                       (username2, passwrd,category))
+                                       "(username, password, category, active)"
+                                       "VALUES(%s, %s, %s, %s)",
+                                       (username2, passwrd,category,"active"))
                         projectdatabase.commit()
 
                         print("Staff Registeration Complete ....")
@@ -302,9 +372,9 @@ def staff(username):
                 elif userchoice == 3:
                     checkuser(username)
                 elif userchoice == 4:
-                    print("belum siap")
+                    unactive(username)
                 elif userchoice == 5:
-                    print("belum siap")
+                    activeacc(username)
                 elif userchoice == 6:
                     print("belum siap")
                 elif userchoice == 7:
@@ -330,7 +400,7 @@ def staff(username):
             print("-------------------------------------------------------------")
 
             try:
-                userchoice = int(input("Please Choose [1 or 2 or 3 or 4 or 5 or 6 or 7 ]: "))
+                userchoice = int(input("Please Choose [1 or 2 or 3 or 4 or 5 or 6 ]: "))
                 if userchoice == 1 or userchoice == 2:
                     if userchoice == 1:
                         print("\n-------------------------------------------------------------")
@@ -346,16 +416,14 @@ def staff(username):
                 elif userchoice == 5:
                     print("belum siap")
                 elif userchoice == 6:
-                    print("belum siap")
-                elif userchoice == 7:
                     admin(count)
                 else:
                     print("\n-------------------------------------------------------------\n")
-                    print("     You just need to fill either 1 or 2 or 3 or 4 or 5 or 6 or 7 !!!")
+                    print("     You just need to fill either 1 or 2 or 3 or 4 or 5 or 6 !!!")
                     print("\n-------------------------------------------------------------\n")
             except ValueError:
                 print("\n-------------------------------------------------------------\n")
-                print("     You just need to fill either 1 or 2 or 3 or 4 or 5 or 6 or 7 !!!")
+                print("     You just need to fill either 1 or 2 or 3 or 4 or 5 or 6 !!!")
                 print("\n-------------------------------------------------------------\n")
 
         print("belum siap")
@@ -417,19 +485,25 @@ def loginstaf(count):
         user_data = mydbse.fetchone()
 
         if user_data:
-            passwrd = input("Please enter your Password: ")
-            if bcrypt.checkpw(passwrd.encode('utf-8'), user_data[1].encode('utf-8')):
-                print("Welcome back, " + username + ".")
-                staff(username)
-            else:
-                if count == 1:
-                    print("Your password is wrong. Sorry You have reached the Maximum Limit which is 3 times. Please Try Again")
-                    print("\n-------------------------------------------------------------")
-                    admin(3)
+            mydbse.execute("SELECT active FROM stafbank WHERE username=%s",
+                           (username,))
+            user_data2 = mydbse.fetchone()
+            if user_data2[0].lower() == "active" : 
+                passwrd = input("Please enter your Password: ")
+                if bcrypt.checkpw(passwrd.encode('utf-8'), user_data[1].encode('utf-8')):
+                    print("Welcome back, " + username + ".")
+                    staff(username)
                 else:
-                    count -= 1
-                    print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
-                    loginstaf(count)
+                    if count == 1:
+                        print("Your password is wrong. Sorry You have reached the Maximum Limit which is 3 times. Please Try Again")
+                        print("\n-------------------------------------------------------------")
+                        admin(3)
+                    else:
+                        count -= 1
+                        print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
+                        loginstaf(count)
+            else:
+                print("Your Account Is unactive ... Please Contact Your Bank..")
         else:
             print("Your staff account is not in the database, are you serious you are staff?")
             askuser = input("Do you want To Login Y for yes or any key to quit ? [ Y or any key ] : ")
@@ -488,19 +562,25 @@ def login(count):
         user_data = mydbse.fetchone()
 
         if user_data:
-            passwrd = input("Please enter your Password: ")
-            if bcrypt.checkpw(passwrd.encode('utf-8'), user_data[2].encode('utf-8')):
-                print("Welcome back, " + username + ".")
-                user(username)
-            else:
-                if count == 1:
-                    print("Your password is wrong. Sorry You have reached the Maximum Limit which is 3 times. Please Try Again")
-                    print("\n-------------------------------------------------------------")
-                    choose()
+            mydbse.execute("SELECT active FROM user WHERE username=%s",
+                           (username,))
+            user_data2 = mydbse.fetchone()
+            if user_data2[0].lower() == "active" : 
+                passwrd = input("Please enter your Password: ")
+                if bcrypt.checkpw(passwrd.encode('utf-8'), user_data[2].encode('utf-8')):
+                    print("Welcome back, " + username + ".")
+                    user(username)
                 else:
-                    count -= 1
-                    print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
-                    login(count)
+                    if count == 1:
+                        print("Your password is wrong. Sorry You have reached the Maximum Limit which is 3 times. Please Try Again")
+                        print("\n-------------------------------------------------------------")
+                        choose()
+                    else:
+                        count -= 1
+                        print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
+                        login(count)
+            else:
+                print("Your Account Is unactive ... Please Contact Your Bank..")
         else:
             print("Your account is not in the database, please register at the bank first")
             askuser = input("Do you want To Login Y for yes or any key to quit ? [ Y or any key ] : ")
