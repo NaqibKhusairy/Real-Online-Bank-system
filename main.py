@@ -102,7 +102,7 @@ def unactive(username):
     print("\n-------------------------------------------------------------")
     print("                     Deactivated User Account")
     print("-------------------------------------------------------------\n")
-    username2 = input("Please enter your Username: ")
+    username2 = input("Please enter Username: ")
     print("\n-------------------------------------------------------------")
     try:
         projectdatabase = database()
@@ -137,7 +137,7 @@ def activeacc(username):
     print("\n-------------------------------------------------------------")
     print("                     Activated User Account")
     print("-------------------------------------------------------------\n")
-    username2 = input("Please enter your Username: ")
+    username2 = input("Please enter Username: ")
     print("\n-------------------------------------------------------------")
     try:
         projectdatabase = database()
@@ -172,7 +172,7 @@ def checkuser(username):
     print("\n-------------------------------------------------------------")
     print("                     Check User Account")
     print("-------------------------------------------------------------\n")
-    username2 = input("Please enter your Username: ")
+    username2 = input("Please enter Username: ")
     print("\n-------------------------------------------------------------")
     try:
         projectdatabase = database()
