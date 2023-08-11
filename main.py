@@ -5,7 +5,7 @@ import random
 table = [
     [" 1", "Login"],
     [" 2", "ATM Function"],
-    [" 3", "Forgot Password"]
+    [" 3", "Forgot Password"],
     [" 4", "Staff Bank"]
 ]
 
@@ -44,8 +44,8 @@ table5 = [
 ]
 
 table6 = [
-    [" 1", "Withdraw"], # belum
-    [" 2", "Bank In To Account"], # belum
+    [" 1", "Withdraw"],
+    [" 2", "Bank In To Account"],
     [" 3", "Back"]
 ]
 
@@ -680,7 +680,45 @@ def userforgotpassword():
         print("Failed to log in: {}".format(err))
 
 def user(username):
-    print("-------------------------------------------------------------")
+    print("\n-------------------------------------------------------------")
+    print("                      Username: "+username)
+    print("-------------------------------------------------------------\n")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT * FROM user WHERE username=%s",(username,))
+        sameinpt = mydbse.fetchone()
+
+        if sameinpt:
+            mydbse.execute("SELECT accountnum FROM user WHERE username=%s",
+                           (username,))
+            accountnum = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT category FROM user WHERE username=%s",
+                           (username,))
+            category = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT active FROM user WHERE username=%s",
+                           (username,))
+            activate = mydbse.fetchone()[0]
+
+            mydbse.execute("SELECT money FROM user WHERE username=%s",
+                           (username,))
+            money = mydbse.fetchone()[0]
+
+            print("Account Number : "+accountnum)
+            print("Username : "+username)
+            print("Category : "+category)
+            print("Account Balance : RM {:.2f}".format(money))
+            print("Acount is : "+activate)
+        else:
+            print("User Not Found")
+
+    except :
+        print("Failed to Find User ")
+        login(3)
+
+    print("\n-------------------------------------------------------------")
     for row in table5:
         for col in row:
             print(col, end="\t")
@@ -700,6 +738,7 @@ def user(username):
         elif userchoice == 4:
             print("belum siap")
         elif userchoice == 5:
+            print("-------------------------------------------------------------")
             choose()
         else:
             print("\n-------------------------------------------------------------\n")
@@ -727,7 +766,7 @@ def login(count):
             mydbse.execute("SELECT active FROM user WHERE username=%s",
                            (username,))
             user_data2 = mydbse.fetchone()
-            if user_data2[0].lower() == "active" : 
+            if user_data2[0].lower() == "active" :
                 passwrd = input("Please enter your Password: ")
                 if bcrypt.checkpw(passwrd.encode('utf-8'), user_data[2].encode('utf-8')):
                     print("Welcome back, " + username + ".")
@@ -756,8 +795,142 @@ def login(count):
     except mysql.connector.Error as err:
         print("Failed to log in: {}".format(err))
 
+def withdraw(count):
+    print("\n-------------------------------------------------------------")
+    print("                       Withdraw Money")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter Username: ")
+    
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT * FROM user WHERE username=%s",(username2,))
+        sameinpt = mydbse.fetchone()
+
+        if sameinpt:
+            mydbse.execute("SELECT active FROM user WHERE username=%s",
+                           (username2,))
+            user_data2 = mydbse.fetchone()
+            if user_data2[0].lower() == "active" :
+                passwrd = input("Please enter your Password: ")
+                if bcrypt.checkpw(passwrd.encode('utf-8'), sameinpt[2].encode('utf-8')):
+                    mydbse.execute("SELECT money FROM user WHERE username=%s",
+                                   (username2,))
+                    money = mydbse.fetchone()[0]
+
+                    if money <= 10:
+                        print("Your Account Balance is not enough to withdraw")
+                        atm()
+                    else:
+                        userwithdraw = float(input("Please Enter Your Withdraw Amount: RM "))
+                        if userwithdraw > money:
+                            print("There is not enough money in your account to withdraw")
+                            withdraw()
+                        elif userwithdraw <= 0:
+                            print("Please enter a valid withdraw amount.")
+                            withdraw()
+                        else:
+                            money -= userwithdraw
+                            if money < 10:
+                                print("There is not enough money in your account to withdraw. Minumum in your account must have RM 10")
+                            else:
+                                mydbse.execute("UPDATE user SET money=%s WHERE username=%s",
+                                               (money, username2))
+                                projectdatabase.commit()
+
+                                mydbse.execute("INSERT INTO history"
+                                    "(username, detail, money)"
+                                    "VALUES(%s, %s, %s)",
+                                    (username2, "Money Withdraw", "-RM {:.2f}".format(userwithdraw)))
+                                projectdatabase.commit()
+
+                                print("You have withdrawn RM {:.2f} from your account".format(userwithdraw))
+                                print("Your account Balance: RM {:.2f}".format(money))
+                                atm()
+                else:
+                    if count == 1:
+                        print("Your password is wrong. Sorry You have reached the Maximum Limit which is 3 times. Please Try Again")
+                        print("\n-------------------------------------------------------------")
+                        atm()
+                    else:
+                        count -= 1
+                        print("Your password is wrong. Please try again. You only have " + str(count) + " chances left")
+                        withdraw(count)
+            else:
+                print("Sorry Your Account Is unactive.... Please connect your bank...")
+                atm()
+        else:
+            print("User Not Found. Please enter the correct username")
+            withdraw(count)
+
+    except mysql.connector.Error as err:
+        print("Failed to update data: {}".format(err))
+
+def bankin():
+    print("\n-------------------------------------------------------------")
+    print("                       Bankin Money")
+    print("-------------------------------------------------------------\n")
+    username2 = input("Please enter Account Number: ")
+
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+
+        mydbse.execute("SELECT * FROM user WHERE accountnum=%s",(username2,))
+        sameinpt = mydbse.fetchone()
+
+        if sameinpt:
+            mydbse.execute("SELECT active FROM user WHERE username=%s",
+                           (username2,))
+            user_data2 = mydbse.fetchone()
+
+            if user_data2[0].lower() == "active" :
+                mydbse.execute("SELECT username FROM user WHERE accountnum=%s",
+                               (username2,))
+                username = mydbse.fetchone()[0]
+
+                print("Bank In To Account : "+username)
+
+                mydbse.execute("SELECT money FROM user WHERE accountnum=%s",
+                               (username2,))
+                money = mydbse.fetchone()[0]
+
+                bankinmoney = float(input("Please Enter Your Bankin Amount: RM "))
+                if bankinmoney <= 0:
+                    print("Please Insert Amount Bigger than RM 0")
+                    bankin()
+                else:
+                    money += bankinmoney
+                    mydbse.execute("UPDATE user SET money=%s WHERE accountnum=%s",
+                                   (money, username2))
+                    projectdatabase.commit()
+
+                    mydbse.execute("INSERT INTO history"
+                        "(username, detail, money)"
+                        "VALUES(%s, %s, %s)",
+                        (username, "Bank In ", "+RM {:.2f}".format(bankinmoney)))
+                    projectdatabase.commit()
+
+                    print("You have banked in RM {:.2f} to your account".format(bankinmoney))
+                    print("Your account Balance: RM {:.2f}".format(money))
+                    atm()
+            else:
+                print("Sorry Your Account Is unactive.... Please connect your bank...")
+                atm()
+
+        else:
+            print("Account Number Not Found.. Please insert the correct account number...")
+            bankin()
+
+    except mysql.connector.Error as err:
+        print("Failed to update data: {}".format(err))
+        atm()
+
 def atm():
+    print("\n-------------------------------------------------------------")
+    print("                             ATM")
     print("-------------------------------------------------------------")
+    count=3
     for row in table6:
         for col in row:
             print(col, end="\t")
@@ -769,10 +942,11 @@ def atm():
         print()
         if userchoice == 1 or userchoice == 2:
             if userchoice == 1:
-                print("belum siap")
+                withdraw(count)
             elif userchoice == 2:
-                print("belum siap")
+                bankin()
         elif userchoice == 3:
+            print("-------------------------------------------------------------")
             choose()
         else:
             print("\n-------------------------------------------------------------\n")
