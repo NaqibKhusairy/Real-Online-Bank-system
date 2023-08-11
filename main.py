@@ -410,6 +410,18 @@ def registeruser(username):
     except mysql.connector.Error as err:
         print("Failed to Insert data: {}".format(err))
 
+def checkmoneyinbank(username):
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        mydbse.execute("SELECT money FROM user")
+        money_records = mydbse.fetchall()
+        money = sum(record[0] for record in money_records)
+        print("Total Balance Account In All Account: RM {:.2f}".format(money))
+        staff(username)
+    except mysql.connector.Error as err:
+        print("Failed to count Money: {}".format(err))
+
 def staff(username):
     count=3
     try:
@@ -449,7 +461,7 @@ def staff(username):
                 elif userchoice == 7:
                     deleteaccount(username)
                 elif userchoice == 8:
-                    print("belum siap")
+                    checkmoneyinbank(username)
                 elif userchoice == 9:
                     admin(count)
                 else:
@@ -481,7 +493,7 @@ def staff(username):
                 elif userchoice == 3:
                     changepasswordstaff(username)
                 elif userchoice == 4:
-                    print("belum siap")
+                    checkmoneyinbank(username)
                 elif userchoice == 5:
                     admin(count)
                 else:
