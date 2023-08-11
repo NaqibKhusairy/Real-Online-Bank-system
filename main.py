@@ -100,7 +100,7 @@ def createdatabase():
 
 def unactive(username):
     print("\n-------------------------------------------------------------")
-    print("                     unactive User Account")
+    print("                     Deactivated User Account")
     print("-------------------------------------------------------------\n")
     username2 = input("Please enter your Username: ")
     print("\n-------------------------------------------------------------")
