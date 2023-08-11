@@ -97,6 +97,30 @@ def createdatabase():
             print("Failed to Insert data: {}".format(err))
     except mysql.connector.Error as err:
         print("Error: {}".format(err))
+                
+def changepasswordstaff(username):
+    print("\n-------------------------------------------------------------")
+    print("                    Staff Change Password")
+    print("-------------------------------------------------------------\n")
+    try:
+        projectdatabase = database()
+        mydbse = projectdatabase.cursor()
+        passwrd = input("Please enter your New Password: ")
+        cpasswrd = input("Please confirm your New Password: ")
+
+        if passwrd == cpasswrd : 
+            passwrd = bcrypt.hashpw(passwrd.encode('utf-8'), bcrypt.gensalt())
+            mydbse.execute("UPDATE stafbank SET password=%s WHERE username=%s",
+                (passwrd, username))
+            projectdatabase.commit()
+            print("\n"+username + " Your password have been changed .")
+            staff(username)
+        else :
+            print("Please Make Sure Your Password and confirm passwrd is same. please register again")
+            changepasswordstaff(username)
+
+    except mysql.connector.Error as err:
+        print("Failed to log in: {}".format(err))
 
 def unactive(username):
     print("\n-------------------------------------------------------------")
@@ -376,7 +400,7 @@ def staff(username):
                 elif userchoice == 5:
                     activeacc(username)
                 elif userchoice == 6:
-                    print("belum siap")
+                    changepasswordstaff(username)
                 elif userchoice == 7:
                     print("belum siap")
                 elif userchoice == 8:
@@ -410,7 +434,7 @@ def staff(username):
                     elif userchoice == 2:
                         checkuser(username)
                 elif userchoice == 3:
-                    print("belum siap")
+                    changepasswordstaff(username)
                 elif userchoice == 4:
                     print("belum siap")
                 elif userchoice == 5:
